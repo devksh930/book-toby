@@ -1,26 +1,50 @@
 package me.devksh930.booktoby.dao;
 
 
+import lombok.extern.slf4j.Slf4j;
+import me.devksh930.booktoby.domain.User;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.sql.SQLException;
 
-
-import me.devksh930.booktoby.domain.User;
-import org.junit.jupiter.api.*;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.GenericXmlApplicationContext;
-import org.springframework.dao.EmptyResultDataAccessException;
-
-
+@Slf4j
+//@DirtiesContext
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(locations = "/test-applicationContext.xml")
 public class UserDaoTest {
+
+    @Autowired
+    private ApplicationContext context;
     private UserDao dao;
 
     @BeforeEach
     public void setUp() {
-        ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
-        this.dao = context.getBean("userDao", UserDao.class);
+        this.dao = this.context.getBean("userDao", UserDao.class);
+//        DataSource dataSource = new SingleConnectionDataSource(
+//                "jdbc:mysql://localhost/test",
+//                "root",
+//                "1234",
+//                true
+//        );
+//        dao.setDataSource(dataSource);
+        System.out.println(this);
+        System.out.println(this.context);
     }
 
     @Test
