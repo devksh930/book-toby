@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -21,7 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 
 @Slf4j
-//@DirtiesContext
+@DirtiesContext
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "/test-applicationContext.xml")
 public class UserDaoTest {
@@ -30,26 +31,24 @@ public class UserDaoTest {
     private ApplicationContext context;
     private UserDao dao;
 
+    private User user1;
+    private User user2;
+    private User user3;
+
     @BeforeEach
     public void setUp() {
         this.dao = this.context.getBean("userDao", UserDao.class);
-//        DataSource dataSource = new SingleConnectionDataSource(
-//                "jdbc:mysql://localhost/test",
-//                "root",
-//                "1234",
-//                true
-//        );
-//        dao.setDataSource(dataSource);
-        System.out.println(this);
-        System.out.println(this.context);
+
+        user1 = new User("Devksh930", "cadence", "springno1");
+        user2 = new User("cadence", "devksh930", "springno1");
+        user3 = new User("kim", "cadence", "springno1");
+
     }
 
     @Test
     @DisplayName("andAndGet 테스트")
     public void andAndGet() throws SQLException {
 
-        User user1 = new User("Devksh930", "cadence", "springno1");
-        User user2 = new User("cadence", "devksh930", "springno1");
 
         dao.deleteAll();
         assertThat(dao.getCount(), is(0));
@@ -66,9 +65,6 @@ public class UserDaoTest {
     @Test
     @DisplayName("count 테스트")
     public void count() throws SQLException {
-        User user1 = new User("Devksh930", "cadence", "springno1");
-        User user2 = new User("cadence", "devksh930", "springno1");
-        User user3 = new User("kim", "cadence", "springno1");
 
         dao.deleteAll();
         assertThat(dao.getCount(), is(0));
