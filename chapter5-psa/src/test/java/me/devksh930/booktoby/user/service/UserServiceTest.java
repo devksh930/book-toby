@@ -7,15 +7,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.util.ArrayList;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,7 +31,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "/test-applicationContext.xml")
-class UserServiceImplTest {
+class UserServiceTest {
     @Autowired
     UserService userService;
     @Autowired
@@ -41,7 +43,7 @@ class UserServiceImplTest {
     @Autowired
     DefaultUserUpgradeLevelPolicy defaultUserUpgradeLevelPolicy;
     @Autowired
-    UserServiceImpl userServiceImpl;
+    ApplicationContext context;
 
     List<User> users;
 
@@ -82,11 +84,11 @@ class UserServiceImplTest {
         verify(mockUserDao).update(users.get(3));
 
         ArgumentCaptor<SimpleMailMessage> mailMessageArg = ArgumentCaptor.forClass(SimpleMailMessage.class);
-        verify(mockMailSender,times(2)).send(mailMessageArg.capture());
+        verify(mockMailSender, times(2)).send(mailMessageArg.capture());
 
         List<SimpleMailMessage> allValues = mailMessageArg.getAllValues();
-        assertThat(allValues.get(0).getTo()[0],is(users.get(1).getEmail()));
-        assertThat(allValues.get(1).getTo()[0],is(users.get(3).getEmail()));
+        assertThat(allValues.get(0).getTo()[0], is(users.get(1).getEmail()));
+        assertThat(allValues.get(1).getTo()[0], is(users.get(3).getEmail()));
     }
 
     private void checkUserAndLevel(User updated, String expectedId, Level expectedLevel) {
@@ -113,15 +115,17 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void upgradeAllOrNothing() {
-        UserServiceImpl testUserServiceImpl = new TestUserServiceImpl(users.get(3).getId());
-        testUserServiceImpl.setUserDao(this.userDao);
-        testUserServiceImpl.setMailSender(this.mailSender);
-        testUserServiceImpl.setUserLevelUpgradePolicy(defaultUserUpgradeLevelPolicy);
+    @DirtiesContext
+    public void upgradeAllOrNothing() throws Exception {
+        TestUserService testUserService = new TestUserService(users.get(3).getId());
+        testUserService.setUserDao(this.userDao);
+        testUserService.setMailSender(this.mailSender);
+        testUserService.setUserLevelUpgradePolicy(defaultUserUpgradeLevelPolicy);
 
-        UserServiceTx txUserService = new UserServiceTx();
-        txUserService.setTransactionManager(transactionManager);
-        txUserService.setUserService(testUserServiceImpl);
+
+        ProxyFactoryBean txProxyFactoryBean = context.getBean("&userService", ProxyFactoryBean.class);
+        txProxyFactoryBean.setTarget(testUserService);
+        UserService txUserService = (UserService) txProxyFactoryBean.getObject();
 
         userDao.deleteAll();
         for (User user : users) userDao.add(user);
@@ -145,10 +149,10 @@ class UserServiceImplTest {
         }
     }
 
-    static class TestUserServiceImpl extends UserServiceImpl {
+    static class TestUserService extends UserServiceImpl {
         private String id;
 
-        private TestUserServiceImpl(String id) {
+        private TestUserService(String id) {
             this.id = id;
         }
 
@@ -161,55 +165,4 @@ class UserServiceImplTest {
     static class TestUserServiceException extends RuntimeException {
     }
 
-    static class MockMailSender implements MailSender {
-        private List<String> requests = new ArrayList<String>();
-
-        public List<String> getRequests() {
-            return requests;
-        }
-
-        public void send(SimpleMailMessage mailMessage) throws MailException {
-            requests.add(mailMessage.getTo()[0]);
-        }
-
-        public void send(SimpleMailMessage[] mailMessage) throws MailException {
-        }
-    }
-
-    static class MockUserDao implements UserDao {
-        private List<User> users;
-        private List<User> updated = new ArrayList();
-
-        private MockUserDao(List<User> users) {
-            this.users = users;
-        }
-
-        public List<User> getUpdated() {
-            return this.updated;
-        }
-
-        public List<User> getAll() {
-            return this.users;
-        }
-
-        public void update(User user) {
-            updated.add(user);
-        }
-
-        public void add(User user) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void deleteAll() {
-            throw new UnsupportedOperationException();
-        }
-
-        public User get(String id) {
-            throw new UnsupportedOperationException();
-        }
-
-        public int getCount() {
-            throw new UnsupportedOperationException();
-        }
-    }
 }

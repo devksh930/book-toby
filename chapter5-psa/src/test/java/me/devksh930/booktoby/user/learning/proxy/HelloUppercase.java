@@ -1,4 +1,4 @@
-package me.devksh930.booktoby.user.learning;
+package me.devksh930.booktoby.user.learning.proxy;
 
 public class HelloUppercase implements Hello {
     Hello hello;

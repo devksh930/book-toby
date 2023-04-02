@@ -11,15 +11,21 @@
         <property name="password" value="1234"/>
     </bean>
 
+    <bean id="userService" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="target" ref="userServiceImpl"/>
+        <property name="interceptorNames">
+            <list>
+                <value>transactionAdvisor</value>
+            </list>
+        </property>
+
+    </bean>
+
 
     <bean id="userServiceImpl" class="me.devksh930.booktoby.user.service.UserServiceImpl">
         <property name="userDao" ref="userDao"/>
         <property name="userLevelUpgradePolicy" ref="userUpgradeLevelPolicy"/>
         <property name="mailSender" ref="mailSender"/>
-    </bean>
-    <bean id="userService" class="me.devksh930.booktoby.user.service.UserServiceTx">
-        <property name="transactionManager" ref="transactionManager"/>
-        <property name="userService" ref="userServiceImpl"/>
     </bean>
 
     <bean id="userDao" class="me.devksh930.booktoby.user.dao.UserDaoJdbc">
@@ -35,5 +41,19 @@
     </bean>
 
     <bean id="mailSender" class="me.devksh930.booktoby.user.service.DummyMailSender"/>
+
+    <bean id="transactionAdvice" class="me.devksh930.booktoby.user.service.TransactionAdvice">
+        <property name="transactionManager" ref="transactionManager"/>
+    </bean>
+
+    <bean id="transactionPointcut" class="org.springframework.aop.support.NameMatchMethodPointcut">
+        <property name="mappedName" value="upgrade*"/>
+    </bean>
+
+    <bean id="transactionAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
+        <property name="advice" ref="transactionAdvice"/>
+        <property name="pointcut" ref="transactionPointcut"/>
+    </bean>
+
 
 </beans>
