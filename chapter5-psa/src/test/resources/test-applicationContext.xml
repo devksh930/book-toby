@@ -10,19 +10,24 @@
         <property name="password" value="1234"/>
     </bean>
 
+    <bean id="userServiceImpl" class="me.devksh930.booktoby.user.service.UserServiceImpl">
+        <property name="userDao" ref="userDao"/>
+        <property name="userLevelUpgradePolicy" ref="userUpgradeLevelPolicy"/>
+        <property name="mailSender" ref="mailSender"/>
+    </bean>
+
+    <bean id="userService" class="me.devksh930.booktoby.user.service.UserServiceTx">
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="userService" ref="userServiceImpl"/>
+    </bean>
+
     <bean id="userDao" class="me.devksh930.booktoby.user.dao.UserDaoJdbc">
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <bean id="userService" class="me.devksh930.booktoby.user.service.UserService">
-        <property name="userDao" ref="userDao"/>
-        <property name="userLevelUpgradePolicy" ref="userUpgradeLevelPolicy"/>
-        <property name="transactionManager" ref="transactionManager"/>
-        <property name="mailSender" ref="mailSender"/>
+    <bean id="userUpgradeLevelPolicy" class="me.devksh930.booktoby.user.service.DefaultUserUpgradeLevelPolicy">
+
     </bean>
-
-    <bean id="userUpgradeLevelPolicy" class="me.devksh930.booktoby.user.service.DefaultUserUpgradeLevelPolicy"/>
-
 
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>

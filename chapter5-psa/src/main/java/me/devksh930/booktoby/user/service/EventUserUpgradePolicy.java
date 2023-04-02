@@ -19,8 +19,8 @@ public class EventUserUpgradePolicy implements UserLevelUpgradePolicy {
         Level currentLevel = user.getLevel();
 
         return switch (currentLevel) {
-            case BASIC -> user.getLogin() + bonusCount >= UserService.MIN_LOGCOUNT_FOR_SILVER;
-            case SILVER -> user.getRecommend() + bonusCount >= UserService.MIN_RECCOMEND_FOR_GOLD;
+            case BASIC -> user.getLogin() + bonusCount >= UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER;
+            case SILVER -> user.getRecommend() + bonusCount >= UserServiceImpl.MIN_RECCOMEND_FOR_GOLD;
             case GOLD -> false;
             default -> throw new IllegalArgumentException("Unknown Level: " + currentLevel);
         };

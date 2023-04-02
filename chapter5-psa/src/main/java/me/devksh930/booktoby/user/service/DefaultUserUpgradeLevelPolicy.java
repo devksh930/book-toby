@@ -3,8 +3,8 @@ package me.devksh930.booktoby.user.service;
 import me.devksh930.booktoby.user.domain.Level;
 import me.devksh930.booktoby.user.domain.User;
 
-import static me.devksh930.booktoby.user.service.UserService.MIN_LOGCOUNT_FOR_SILVER;
-import static me.devksh930.booktoby.user.service.UserService.MIN_RECCOMEND_FOR_GOLD;
+import static me.devksh930.booktoby.user.service.UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER;
+import static me.devksh930.booktoby.user.service.UserServiceImpl.MIN_RECCOMEND_FOR_GOLD;
 
 public class DefaultUserUpgradeLevelPolicy implements UserLevelUpgradePolicy {
     public DefaultUserUpgradeLevelPolicy() {
