@@ -1,4 +1,5 @@
 rootProject.name = 'book-toby'
 include 'chapter3-template'
 include 'chapter2-test'
+include 'chapter5-psa'
 

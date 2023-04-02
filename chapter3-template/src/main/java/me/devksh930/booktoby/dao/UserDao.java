@@ -2,7 +2,6 @@ package me.devksh930.booktoby.dao;
 
 
 import me.devksh930.booktoby.domain.User;
-import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
