@@ -4,17 +4,22 @@ import me.devksh930.booktoby.user.dao.UserDao;
 import me.devksh930.booktoby.user.domain.Level;
 import me.devksh930.booktoby.user.domain.User;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -133,6 +138,13 @@ class UserServiceTest {
         assertThat(testUserService, Matchers.isA(java.lang.reflect.Proxy.class));
     }
 
+    @Test
+    public void readOnlyTransactionAttribute() {
+        Assertions.assertThrows(TransientDataAccessResourceException.class, () -> {
+            testUserService.getAll();
+        });
+    }
+
     private void checkLevelUpgraded(User user, boolean upgraded) {
         User userUpdate = userDao.get(user.getId());
 
@@ -149,6 +161,13 @@ class UserServiceTest {
         protected void upgradeLevel(User user) {
             if (user.getId().equals(this.id)) throw new TestUserServiceException();
             super.upgradeLevel(user);
+        }
+
+        public List<User> getAll() {
+            for (User user : super.getAll()) {
+                super.update(user);
+            }
+            return null;
         }
     }
 

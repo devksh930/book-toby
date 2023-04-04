@@ -49,4 +49,10 @@ public class UserServiceImpl implements UserService {
         }
         userDao.add(user);
     }
+
+    public List<User> getAll() { return userDao.getAll(); }
+
+    public void update(User user) { userDao.update(user); }
+
+
 }
