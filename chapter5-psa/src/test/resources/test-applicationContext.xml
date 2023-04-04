@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+						   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
 
     <bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
         <property name="driverClass" value="com.mysql.cj.jdbc.Driver"/>
@@ -10,31 +13,27 @@
         <property name="username" value="root"/>
         <property name="password" value="1234"/>
     </bean>
+    <aop:config>
+        <!--        <aop:pointcut id="transactionPointcut" expression="execution(* *..*ServiceImpl.upgrade*(..))"/>-->
+        <aop:advisor advice-ref="transactionAdvice" pointcut="execution(* *..*ServiceImpl.upgrade*(..))"/>
+    </aop:config>
 
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
 
-    <bean id="transactionAdvice" class="me.devksh930.booktoby.user.service.TransactionAdvice">
+    <bean id="transactionAdvice" class="org.springframework.transaction.interceptor.TransactionInterceptor">
         <property name="transactionManager" ref="transactionManager"/>
+        <property name="transactionAttributes">
+            <props>
+                <prop key="get*">PROPAGATION_REQUIRED,readOnly,timeout_30</prop>
+                <prop key="upgrade*">PROPAGATION_REQUIRES_NEW,ISOLATION_SERIALIZABLE</prop>
+                <prop key="*">PROPAGATION_REQUIRED</prop>
+            </props>
+        </property>
+
     </bean>
-
-<!--    <bean id="transactionPointcut" class="me.devksh930.booktoby.user.service.NameMatchClassMethodPointcut">-->
-<!--        <property name="mappedClassName" value="*ServiceImpl"/>-->
-<!--        <property name="mappedName" value="upgrade*"/>-->
-<!--    </bean>-->
-
-    <bean id="transactionPointcut"  class="org.springframework.aop.aspectj.AspectJExpressionPointcut">
-        <property name="expression" value="execution(* *..*ServiceImpl.upgrade*(..))"/>
-    </bean>
-
-    <bean id="transactionAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
-        <property name="advice" ref="transactionAdvice"/>
-        <property name="pointcut" ref="transactionPointcut"/>
-    </bean>
-
 
     <bean id="userService" class="me.devksh930.booktoby.user.service.UserServiceImpl">
         <property name="userDao" ref="userDao"/>
@@ -42,7 +41,8 @@
         <property name="mailSender" ref="mailSender"/>
     </bean>
 
-    <bean id="testUserService" class="me.devksh930.booktoby.user.service.UserServiceTest$TestUserServiceImpl" parent="userService" />
+    <bean id="testUserService" class="me.devksh930.booktoby.user.service.UserServiceTest$TestUserServiceImpl"
+          parent="userService"/>
 
 
     <bean id="userDao" class="me.devksh930.booktoby.user.dao.UserDaoJdbc">
@@ -54,7 +54,6 @@
 
 
     <bean id="mailSender" class="me.devksh930.booktoby.user.service.DummyMailSender"/>
-
 
 
 </beans>
